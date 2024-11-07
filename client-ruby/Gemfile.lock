@@ -1,0 +1,18 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    event_emitter (0.2.6)
+    websocket (1.2.11)
+    websocket-client-simple (0.8.0)
+      event_emitter
+      websocket
+
+PLATFORMS
+  arm64-darwin-23
+  ruby
+
+DEPENDENCIES
+  websocket-client-simple
+
+BUNDLED WITH
+   2.5.19

@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  app_telemetry_collector:
+    image: app-telemetry-collector
+    ports:
+      - 8091:8091
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+  promlens:
+    image: prom/promlens
+    ports:
+      - 8080:8080
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
