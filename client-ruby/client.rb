@@ -36,9 +36,9 @@ class TelemetryStore
   def record_latency(service, bucket, host, latency_sec)
     metric =
       if service == :kv
-        "sdk_#{service}_#{[:retrieval, :mutation_durable, :mutation_nondurable].sample}"
+        "sdk_#{service}_#{[:retrieval, :mutation_durable, :mutation_nondurable].sample}_duration_seconds"
       else
-        "sdk_#{service}"
+        "sdk_#{service}_duration_seconds"
       end
     histogram = @histograms[bucket][host][metric]
     histogram.each_key do |upper_bound|
@@ -57,7 +57,7 @@ class TelemetryStore
     @histograms = Hash.new do |level_1, bucket|
       level_1[bucket] = Hash.new do |level_2, host|
         level_2[host] = {
-          "sdk_kv_retrieval" => {
+          "sdk_kv_retrieval_duration_seconds" => {
             0.001 => 0,
             0.01 => 0,
             0.1 => 0,
@@ -68,7 +68,7 @@ class TelemetryStore
             "sum" => 0,
             "count" => 0,
           },
-          "sdk_kv_mutation_nondurable" => {
+          "sdk_kv_mutation_nondurable_duration_seconds" => {
             0.001 => 0,
             0.01 => 0,
             0.1 => 0,
@@ -79,7 +79,7 @@ class TelemetryStore
             "sum" => 0,
             "count" => 0,
           },
-          "sdk_kv_mutation_durable" => {
+          "sdk_kv_mutation_durable_duration_seconds" => {
             0.01 => 0,
             0.1 => 0,
             1 => 0,
@@ -90,7 +90,7 @@ class TelemetryStore
             "sum" => 0,
             "count" => 0,
           },
-          "sdk_query" => {
+          "sdk_query_duration_seconds" => {
             0.1 => 0,
             1 => 0,
             10 => 0,
@@ -100,7 +100,7 @@ class TelemetryStore
             "sum" => 0,
             "count" => 0,
           },
-          "sdk_search" => {
+          "sdk_search_duration_seconds" => {
             0.1 => 0,
             1 => 0,
             10 => 0,
@@ -110,7 +110,7 @@ class TelemetryStore
             "sum" => 0,
             "count" => 0,
           },
-          "sdk_analytics" => {
+          "sdk_analytics_duration_seconds" => {
             0.1 => 0,
             1 => 0,
             10 => 0,
@@ -128,7 +128,7 @@ class TelemetryStore
   def histogram_label(upper_bound)
     return "+Inf" if upper_bound.infinite?
 
-    format("%0.3f", upper_bound).sub(/0+$/, "")
+    format("%0.3g", upper_bound).sub(/0+$/, "")
   end
 
   def export
@@ -141,7 +141,7 @@ class TelemetryStore
     counters.each do |bucket, level_2|
       level_2.each do |host, level_3|
         level_3.each do |metric, value|
-          report << "#{metric}{agent=#{@agent.inspect},bucket=#{bucket.inspect},host=#{host.inspect}} #{value} #{scrapping_timestamp}"
+          report << "#{metric}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round} #{scrapping_timestamp}"
         end
       end
     end
@@ -150,9 +150,9 @@ class TelemetryStore
         level_3.each do |metric, histogram|
           histogram.each do |label, value|
             report << if label.is_a?(Numeric)
-                        "#{metric}{le=#{histogram_label(label).inspect},agent=#{@agent.inspect},bucket=#{bucket.inspect},host=#{host.inspect}} #{value} #{scrapping_timestamp}"
+                        "#{metric}_bucket{le=#{histogram_label(label).inspect},agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round} #{scrapping_timestamp}"
                       else
-                        "#{metric}_#{label}{agent=#{@agent.inspect},bucket=#{bucket.inspect},host=#{host.inspect}} #{value}"
+                        "#{metric}_#{label}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round}"
                       end
           end
         end
