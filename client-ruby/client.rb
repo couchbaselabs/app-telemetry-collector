@@ -141,7 +141,7 @@ class TelemetryStore
     counters.each do |bucket, level_2|
       level_2.each do |host, level_3|
         level_3.each do |metric, value|
-          report << "#{metric}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round} #{scrapping_timestamp}"
+          report << "#{metric}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round(3)} #{scrapping_timestamp}"
         end
       end
     end
@@ -150,9 +150,9 @@ class TelemetryStore
         level_3.each do |metric, histogram|
           histogram.each do |label, value|
             report << if label.is_a?(Numeric)
-                        "#{metric}_bucket{le=#{histogram_label(label).inspect},agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round} #{scrapping_timestamp}"
+                        "#{metric}_bucket{le=#{histogram_label(label).inspect},agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round(3)} #{scrapping_timestamp}"
                       else
-                        "#{metric}_#{label}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round}"
+                        "#{metric}_#{label}{agent=#{@agent.inspect},bucket=#{bucket.inspect},node=#{host.inspect}} #{value.round(3)}"
                       end
           end
         end
