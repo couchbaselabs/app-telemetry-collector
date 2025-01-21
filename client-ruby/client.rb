@@ -165,7 +165,7 @@ end
 class Reporter
   attr_accessor :ws, :store
 
-  def initialize(store, url: "ws://localhost:8091/app_telemetry")
+  def initialize(store, url: "ws://localhost:8091/_appTelemetry")
     @ws = WebSocket::Client::Simple.connect(url)
     @store = store
   end

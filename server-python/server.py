@@ -114,7 +114,7 @@ async def init_app():
     store = TelemetryStore()
     app = web.Application()
     app.router.add_get('/metrics', lambda request: metrics(request, store))
-    app.router.add_get('/app_telemetry', lambda request: websocket_handler(request, store))
+    app.router.add_get('/_appTelemetry', lambda request: websocket_handler(request, store))
     app.router.add_get('/echo', lambda request: echo_handler(request))
     return app
 
