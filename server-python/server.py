@@ -2,6 +2,7 @@ import re
 import asyncio
 from aiohttp import web
 from enum import Enum
+from datetime import datetime
 
 class Command(Enum):
     GET_TELEMETRY = 0
@@ -109,6 +110,32 @@ async def metrics(request, store: TelemetryStore):
         content_type="text/plain; version=0.0.4"
     )
 
+
+class IntervalClock:
+    def __init__(self):
+        self.mark_ = None
+
+    def format_diff(self, now):
+        if self.mark_ is None:
+            return ""
+        diff = now - self.mark_
+        total_seconds = diff.total_seconds()
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        milliseconds = int((total_seconds % 1) * 1000)
+        return f"{minutes} minute(s), {seconds} second(s), {milliseconds} millisecond(s)"
+
+    def touch(self):
+        now = datetime.now()
+        diff_text = self.format_diff(now)
+        self.mark_ = now
+        return diff_text
+
+# Always respond with 409 Too Many Requests
+async def too_many_requests_handler(request, clock):
+    print(clock.touch())
+    return web.HTTPTooManyRequests()
+
 # Initialize app with routes
 async def init_app():
     store = TelemetryStore()
@@ -116,6 +143,9 @@ async def init_app():
     app.router.add_get('/metrics', lambda request: metrics(request, store))
     app.router.add_get('/_appTelemetry', lambda request: websocket_handler(request, store))
     app.router.add_get('/echo', lambda request: echo_handler(request))
+
+    clock = IntervalClock()
+    app.router.add_get('/tooManyRequests', lambda request: too_many_requests_handler(request, clock))
     return app
 
 # Run the application
